@@ -60,7 +60,7 @@ pipeline {
 
             script {
                 def criticalAlerts = sh(
-                    script: "cat ${WORKSPACE}/zap_report.json | jq -c '.site[].alerts[] | select(.risk == \"High\")'",
+                    script: "cat ${WORKSPACE}/zap_report.json | jq -c '.site[].alerts[] | select(.risk == \"Medium\")'",
                     returnStdout: true
                 ).trim()
 
@@ -76,10 +76,10 @@ pipeline {
                                  -d '{
                                       "fields": {
                                           "project": {"key": "EAS"},
-                                          "summary": "Critical Security Alert: ${summary}",
+                                          "summary": "Medium Security Alert: ${summary}",
                                           "description": "${description}",
                                           "issuetype": {"name": "Bug"},
-                                          "priority": {"name": "High"}
+                                          "priority": {"name": "Medium"}
                                       }
                                   }' \
                                  https://priya35.atlassian.net/rest/api/2/issue"""
