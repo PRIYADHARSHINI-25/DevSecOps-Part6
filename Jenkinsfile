@@ -89,9 +89,7 @@ pipeline {
             }
         }
     }
-}
-
-	   
+}	   
 // 	stage('RunDASTUsingZAP') {
 //           steps {
 // 		    withKubeConfig([credentialsId: 'kubelogin']) {
