@@ -53,51 +53,14 @@ pipeline {
 	   	}
 	   }
 
+	   
 	stage('RunDASTUsingZAP') {
-    	steps {
-        withKubeConfig([credentialsId: 'kubelogin']) {
-            sh('zap.sh -cmd -quickurl http://$(kubectl get services/easybuggy --namespace=devsecops-priya -o json | jq -r ".status.loadBalancer.ingress[] | .hostname") -quickprogress -quickout ${WORKSPACE}/zap_report.json')
-
-            script {
-                def criticalAlerts = sh(
-                    script: "cat ${WORKSPACE}/zap_report.json | jq -c '.site[].alerts[] | select(.risk == \"Medium\")'",
-                    returnStdout: true
-                ).trim()
-
-                if (criticalAlerts) {
-                    withCredentials([usernamePassword(credentialsId: 'jiralogin', usernameVariable: 'JIRA_USER', passwordVariable: 'JIRA_TOKEN')]) {
-                        criticalAlerts.split('\n').each { alert ->
-                            def summary = sh(script: "echo '${alert}' | jq -r '.alert'", returnStdout: true).trim()
-                            def description = sh(script: "echo '${alert}' | jq -r '.description'", returnStdout: true).trim()
-                            
-                            // Call Jira REST API with secure credentials
-                            sh """curl -X POST -u $JIRA_USER:$JIRA_TOKEN \
-                                 -H "Content-Type: application/json" \
-                                 -d '{
-                                      "fields": {
-                                          "project": {"key": "EAS"},
-                                          "summary": "Medium Security Alert: ${summary}",
-                                          "description": "${description}",
-                                          "issuetype": {"name": "Bug"},
-                                          "priority": {"name": "Medium"}
-                                      }
-                                  }' \
-                                 https://priya35.atlassian.net/rest/api/2/issue"""
-                        }
-                    }
-                }
-            }
-        }
-    }
-}	   
-// 	stage('RunDASTUsingZAP') {
-//           steps {
-// 		    withKubeConfig([credentialsId: 'kubelogin']) {
-// 				sh('zap.sh -cmd -quickurl http://$(kubectl get services/easybuggy --namespace=devsecops-priya -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") -quickprogress -quickout ${WORKSPACE}/zap_report.html')
-// 				archiveArtifacts artifacts: 'zap_report.html'
-// 		    }
-// 	     }
-//        } 
-//   }
-}
+          steps {
+		    withKubeConfig([credentialsId: 'kubelogin']) {
+				sh('zap.sh -cmd -quickurl http://$(kubectl get services/easybuggy --namespace=devsecops-priya -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") -quickprogress -quickout ${WORKSPACE}/zap_report.html')
+				archiveArtifacts artifacts: 'zap_report.html'
+		    }
+	     }
+       } 
+  }
 }
